@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# Script to check pfSense Disk usage
+#
+
+# Check if enough arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <IP_address> <username> <password>"
+    exit 1
+fi
+
+# Assign arguments to variables
+PFSENSE_IP="$1"
+SSH_USERNAME="$2"
+SSH_PASSWORD="$3"
+
+# SSH command to get pfSense disk usage
+SSH_COMMAND="sshpass -p '$SSH_PASSWORD' ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$PFSENSE_IP 'df -h /'"
+
+# Execute SSH command to get disk usage
+DISK_USAGE=$(eval $SSH_COMMAND)
+
+# Check if disk usage is retrieved successfully
+if [ $? -eq 0 ]; then
+    # Extract disk usage values
+    DISK_TOTAL=$(echo "$DISK_USAGE" | awk 'NR==2 {print $2}')
+    DISK_USED=$(echo "$DISK_USAGE" | awk 'NR==2 {print $3}')
+    DISK_AVAILABLE=$(echo "$DISK_USAGE" | awk 'NR==2 {print $4}')
+    DISK_USE_PERCENT=$(echo "$DISK_USAGE" | awk 'NR==2 {print $5}')
+
+    # Print disk usage
+    echo "pfSense Disk usage: Total: ${DISK_TOTAL}, Used: ${DISK_USED}, Available: ${DISK_AVAILABLE}, Usage: ${DISK_USE_PERCENT}"
+    exit 0
+else
+    echo "Error: Unable to retrieve pfSense disk usage."
+    exit 1
+fi
+

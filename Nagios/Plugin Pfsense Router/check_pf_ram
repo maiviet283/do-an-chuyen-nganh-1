@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Script to check pfSense RAM usage
+#
+
+# Check if enough arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <IP_address> <username> <password>"
+    exit 1
+fi
+
+# Assign arguments to variables
+PFSENSE_IP="$1"
+SSH_USERNAME="$2"
+SSH_PASSWORD="$3"
+
+# SSH command to get pfSense RAM usage
+SSH_COMMAND="sshpass -p '$SSH_PASSWORD' ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$PFSENSE_IP 'sysctl hw.physmem hw.realmem'"
+
+# Execute SSH command to get RAM usage
+RAM_USAGE=$(eval $SSH_COMMAND)
+
+# Check if RAM usage is retrieved successfully
+if [ $? -eq 0 ]; then
+    # Extract RAM usage values
+    PHYSICAL_MEMORY=$(echo "$RAM_USAGE" | grep 'hw.physmem' | awk '{print $2}')
+    REAL_MEMORY=$(echo "$RAM_USAGE" | grep 'hw.realmem' | awk '{print $2}')
+
+    # Convert byte to megabyte
+    PHYSICAL_MEMORY_MB=$(echo "scale=2; $PHYSICAL_MEMORY / (1024 * 1024)" | bc)
+    REAL_MEMORY_MB=$(echo "scale=2; $REAL_MEMORY / (1024 * 1024)" | bc)
+
+    # Print RAM usage in MB
+    echo "pfSense RAM usage: Physical memory: ${PHYSICAL_MEMORY_MB}MB, Real memory: ${REAL_MEMORY_MB}MB"
+    exit 0
+else
+    echo "Error: Unable to retrieve pfSense RAM usage."
+    exit 1
+fi
+

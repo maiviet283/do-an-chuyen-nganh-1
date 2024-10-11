@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Script to check pfSense CPU status
+#
+
+# Check if enough arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <IP_address> <username> <password>"
+    exit 1
+fi
+
+# Assign arguments to variables
+PFSENSE_IP="$1"
+SSH_USERNAME="$2"
+SSH_PASSWORD="$3"
+
+# SSH command to get pfSense CPU status
+SSH_COMMAND="sshpass -p '$SSH_PASSWORD' ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$PFSENSE_IP 'top -n 1 | grep \"CPU:\"'"
+
+# Execute SSH command to get CPU status
+CPU_STATUS=$(eval $SSH_COMMAND)
+
+# Check if CPU status is retrieved successfully
+if [ $? -eq 0 ]; then
+    echo "pfSense CPU status: $CPU_STATUS"
+    exit 0
+else
+    echo "Error: Unable to retrieve pfSense CPU status."
+    exit 1
+fi
+

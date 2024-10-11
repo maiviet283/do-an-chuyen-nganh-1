@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Script to check pfSense uptime
+#
+
+# Check if enough arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <IP_address> <username> <password>"
+    exit 1
+fi
+
+# Assign arguments to variables
+PFSENSE_IP="$1"
+SSH_USERNAME="$2"
+SSH_PASSWORD="$3"
+
+# SSH command to get pfSense uptime
+SSH_COMMAND="sshpass -p '$SSH_PASSWORD' ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$PFSENSE_IP 'uptime'"
+
+# Execute SSH command to get uptime
+UPTIME_REPORT=$(eval $SSH_COMMAND | tr -d ",")
+
+# Parse uptime information
+if echo "$UPTIME_REPORT" | grep -qi "up"; then
+    UPTIME_MSG=$(echo "$UPTIME_REPORT" | awk '{print $3, $4}')
+    echo "OK - pfSense uptime: $UPTIME_MSG"
+    exit 0
+else
+    echo "WARNING - Unable to retrieve pfSense uptime"
+    exit 1
+fi
+

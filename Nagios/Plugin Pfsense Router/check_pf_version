@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Script to check pfSense version
+#
+
+# Check if enough arguments are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <IP_address> <username> <password>"
+    exit 1
+fi
+
+# Assign arguments to variables
+PFSENSE_IP="$1"
+SSH_USERNAME="$2"
+SSH_PASSWORD="$3"
+
+# SSH command to get pfSense version
+SSH_COMMAND="sshpass -p '$SSH_PASSWORD' ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$PFSENSE_IP 'cat /etc/version'"
+
+# Execute SSH command to get version
+VERSION=$(eval $SSH_COMMAND)
+
+# Check if version is retrieved successfully
+if [ $? -eq 0 ]; then
+    echo "pfSense version: $VERSION"
+    exit 0
+else
+    echo "Error: Unable to retrieve pfSense version."
+    exit 1
+fi
+
